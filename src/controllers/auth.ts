@@ -1,24 +1,29 @@
 import axios from 'axios';
 import { Response, Request } from 'express';
-import  SpotifyWebApi  from 'spotify-web-api-node';
-
-const clientId = process.env.SPOTIFY_CLIENT_ID;
-const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
-
-const spotifyApi = new SpotifyWebApi({
-  clientId,
-  clientSecret,
-  redirectUri
-})
+import { setAccessToken, getSpotifyData, createAuthUrl } from '../utils/spotify';
 
 const spotifyAuthorize = async (req: Request, res: Response) => {
-  const scopes = ['user-read-email'];
-  res.redirect(spotifyApi.createAuthorizeURL(scopes, ''))
+  const url = createAuthUrl();
+  res.redirect(url)
 }
 
 const getAccessToken = async (req: Request, res: Response) => {
-  
+  const code = req.query.code as string;
+
+  try {
+    const sporifyData = await getSpotifyData(code);
+    const accessToken = sporifyData.body.access_token;
+    // Save access token to get albums
+    setAccessToken(accessToken);
+
+    res.json({
+      message: 'OK'
+    })
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error getting access token'
+    })
+  }
 }
 
-export { spotifyAuthorize, getAccessToken};
+export {spotifyAuthorize, getAccessToken}
