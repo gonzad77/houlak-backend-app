@@ -43,7 +43,7 @@ const getAlbumsByArtists = async (artist: string) => {
     const sortedAlbums = albumsWithInfo.body.albums.sort((a, b) => b.popularity - a.popularity);
 
     return {
-      name: artistSearched.name,
+      artistName: artistSearched.name,
       albums: sortedAlbums
     }
   } catch (e) {

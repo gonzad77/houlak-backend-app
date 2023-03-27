@@ -25,7 +25,6 @@ const getAccessToken = async (req: Request, res: Response) => {
       message: 'OK'
     })
   } catch (error) {
-    console.log('confirmo')
     res.status(500).json({
       message: 'Error getting access token'
     })

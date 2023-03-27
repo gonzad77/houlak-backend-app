@@ -3,6 +3,8 @@ import albumRoutes from '../routes/album';
 import authRoutes from '../routes/auth';
 import cors from 'cors';
 
+import db from '../db/connection';
+
 class Server {
 
   private app: Application;
@@ -16,8 +18,22 @@ class Server {
     this.app = express();
     this.port = process.env.PORT || '8000';
 
+    this.dbConnection();
     this.middlewares();
     this.routes();
+  }
+
+  async dbConnection() {
+
+    try {
+        
+        await db.authenticate();
+        console.log('Database online');
+
+    } catch (e) {
+        throw (e instanceof Error) ? e : new Error('Error connecting to db');
+    }
+
   }
 
   middlewares() {
@@ -38,7 +54,7 @@ class Server {
 
   listen = () => {
     this.app.listen( this.port, () => {
-      console.log(`⚡️[server]: Server is running at http://localhost:${this.port}`);
+      console.log(`Server is running at http://localhost:${this.port}`);
     })
   }
 }

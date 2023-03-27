@@ -1,6 +1,8 @@
-import axios from 'axios';
 import { Response, Request } from 'express';
-import { getAlbumsByArtists } from '../utils/spotify'
+import Req from '../models/requests';
+import { getAlbumsByArtists } from '../utils/spotify';
+
+import requestIp from 'request-ip';
 
 const getAlbums = async (req: Request, res: Response) => {
   try {
@@ -13,6 +15,16 @@ const getAlbums = async (req: Request, res: Response) => {
     }
 
     const response = await getAlbumsByArtists(artist);
+
+    const userIp = requestIp.getClientIp(req);
+    console.log(userIp);
+    const request = await Req.create({
+      user_ip: userIp,
+      artist_name: response.artistName
+    })
+    await request.save();
+
+
     res.json(response)
 
   } catch (error) {
