@@ -24,6 +24,33 @@ const getSpotifyData = async (code: string) => {
 
 const setAccessToken = (accessToken: string) => {
   spotifyApi.setAccessToken(accessToken);
+  console.log(spotifyApi);
+
 }
 
-export {getSpotifyData, setAccessToken, createAuthUrl};
+const getAlbumsByArtists = async (artist: string) => {
+  try {
+    // Get first artist if there are more than one artist searched
+    const artists = await spotifyApi.searchArtists(artist);
+    const artistSearched = artists.body.artists?.items[0];
+    if (!artistSearched) throw new Error('Artist not found');
+
+    const albums = await spotifyApi.getArtistAlbums(artistSearched.id);
+    if (!albums.body.items.length) throw new Error(`${artistSearched.name} does not have albums`);
+
+    const albumsId = albums.body.items.map(({id}) => id);
+    const albumsWithInfo = await spotifyApi.getAlbums(albumsId);
+    const sortedAlbums = albumsWithInfo.body.albums.sort((a, b) => b.popularity - a.popularity);
+
+    return {
+      name: artistSearched.name,
+      albums: sortedAlbums
+    }
+  } catch (e) {
+    console.log(e)
+    throw (e instanceof Error) ? e : new Error('Error getting albums');
+  
+  }
+}
+
+export {getSpotifyData, setAccessToken, createAuthUrl, getAlbumsByArtists};

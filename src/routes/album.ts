@@ -3,6 +3,6 @@ import  { getAlbums } from '../controllers/albums';
 
 const router = Router();
 
-router.get('/:artist', getAlbums );
+router.get('/', getAlbums );
 
 export default router;
