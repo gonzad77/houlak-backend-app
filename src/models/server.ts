@@ -1,7 +1,10 @@
 import express, { Application } from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
+
 import albumRoutes from '../routes/album';
 import authRoutes from '../routes/auth';
-import cors from 'cors';
 
 import db from '../db/connection';
 
@@ -26,10 +29,8 @@ class Server {
   async dbConnection() {
 
     try {
-        
         await db.authenticate();
         console.log('Database online');
-
     } catch (e) {
         throw (e instanceof Error) ? e : new Error('Error connecting to db');
     }
@@ -45,7 +46,6 @@ class Server {
     this.app.use( express.json() );
 
   }
-
 
   routes() {
       this.app.use( this.apiPaths.albums, albumRoutes )

@@ -1,10 +1,10 @@
 import  SpotifyWebApi  from 'spotify-web-api-node';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const clientId = process.env.SPOTIFY_CLIENT_ID || '69b7d74fcd6b46f4b8606b2ea7a13b63';
-const clientSecret = process.env.SPOTIFY_CLIENT_SECRET || '4216e49447fa414bb2879eb710d3ae77';
-const redirectUri = process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:8000/api/auth/callback';
-
-console.log(clientId)
+const clientId = process.env.SPOTIFY_CLIENT_ID;
+const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
 
 const spotifyApi = new SpotifyWebApi({
   clientId,
@@ -14,18 +14,25 @@ const spotifyApi = new SpotifyWebApi({
 
 const createAuthUrl = () => {
   const scopes = ['user-read-email'];
-  return spotifyApi.createAuthorizeURL(scopes, '');
+  return (spotifyApi.getAccessToken()) ? null : spotifyApi.createAuthorizeURL(scopes, '');
 }
 
 const getSpotifyData = async (code: string) => {
-  const spotifyData = await spotifyApi.authorizationCodeGrant(code);
-  return spotifyData;
+   return await spotifyApi.authorizationCodeGrant(code);
 }
 
 const setAccessToken = (accessToken: string) => {
   spotifyApi.setAccessToken(accessToken);
-  console.log(spotifyApi);
+}
 
+const setRefreshToken = (refreshToken: string) => {
+  spotifyApi.setRefreshToken(refreshToken);
+}
+
+const refreshAccessToken = async () => {
+  const data = await spotifyApi.refreshAccessToken();
+  const newAccessToken = data.body.access_token;
+  setAccessToken(newAccessToken);
 }
 
 const getAlbumsByArtists = async (artist: string) => {
@@ -40,17 +47,24 @@ const getAlbumsByArtists = async (artist: string) => {
 
     const albumsId = albums.body.items.map(({id}) => id);
     const albumsWithInfo = await spotifyApi.getAlbums(albumsId);
-    const sortedAlbums = albumsWithInfo.body.albums.sort((a, b) => b.popularity - a.popularity);
+    const sortedAlbums = albumsWithInfo.body.albums
+    .sort((a, b) => b.popularity - a.popularity)
+    .map( ({id, name, images, release_date, total_tracks}) => ({
+      id,
+      name,
+      image_url: images[0].url,
+      release_date,
+      total_tracks
+    })) 
 
     return {
       artistName: artistSearched.name,
       albums: sortedAlbums
     }
   } catch (e) {
-    console.log(e)
     throw (e instanceof Error) ? e : new Error('Error getting albums');
   
   }
 }
 
-export {getSpotifyData, setAccessToken, createAuthUrl, getAlbumsByArtists};
+export {getSpotifyData, setAccessToken, createAuthUrl, getAlbumsByArtists, setRefreshToken, refreshAccessToken};
